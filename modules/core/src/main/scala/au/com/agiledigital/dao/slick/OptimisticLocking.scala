@@ -36,9 +36,4 @@ trait OptimisticLocking[Entity] {
     }
   }
 
-  override def update(versionable: Entity)(implicit exc: ExecutionContext): DBIO[Entity] = {
-    val id = self.idLens.get(versionable)
-    update(id, versionable)
-  }
-
 }
