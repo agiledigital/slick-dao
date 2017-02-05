@@ -6,22 +6,21 @@ import au.com.agiledigital.dao.slick.exceptions.{ NoRowsAffectedException, Stale
 import scala.concurrent.ExecutionContext
 import scala.util.{ Failure, Success }
 
-trait OptimisticLocking[Entity] {
-  self: EntityActions[Entity, _] =>
+trait OptimisticLocking[Entity] extends DefaultEntityUpdateActions[Entity] with EntitySupport[Entity] {
 
-  import self.driver.api._
+  import profile.api._
 
   def $version(table: EntityTable): Rep[Long]
 
   def versionLens: Lens[Entity, Long]
 
-  override protected def update(id: self.Id, versionable: Entity)(implicit exc: ExecutionContext): DBIO[Entity] = {
+  override protected def update(id: Id, versionable: Entity)(implicit exc: ExecutionContext): DBIO[Entity] = {
 
     // extract current version
     val currentVersion = versionLens.get(versionable)
 
     // build a query selecting entity with current version
-    val queryByIdAndVersion = self.filterById(id).filter($version(_) === currentVersion)
+    val queryByIdAndVersion = filterById(id).filter($version(_) === currentVersion)
 
     // model with incremented version
     val modelWithNewVersion = versionLens.set(versionable, currentVersion + 1)

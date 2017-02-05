@@ -30,7 +30,7 @@ trait Schema extends JdbcProfileProvider {
       with SchemaManagement[Supplier, PendingSupplier]
       with H2ProfileProvider {
 
-    import driver.api._
+    import profile.api._
 
     val baseTypedType: BaseTypedType[Id] = implicitly[BaseTypedType[Id]]
 
@@ -66,7 +66,7 @@ trait Schema extends JdbcProfileProvider {
 
   class BeersDao extends EntityActions[Beer, PendingBeer] with SchemaManagement[Beer, PendingBeer] with H2ProfileProvider {
 
-    import driver.api._
+    import profile.api._
 
     val baseTypedType: BaseTypedType[Id] = implicitly[BaseTypedType[Id]]
 

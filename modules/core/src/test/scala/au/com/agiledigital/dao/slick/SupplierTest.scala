@@ -67,8 +67,8 @@ class SupplierTest extends FlatSpec with H2Suite with Schema {
     deleteResult.failure.exception shouldBe a[SQLException]
   }
 
-  override def createSchemaAction: driver.api.DBIO[Unit] = {
-    driver.api.DBIO.seq(Suppliers.createSchema, Beers.createSchema)
+  override def createSchemaAction: profile.api.DBIO[Unit] = {
+    profile.api.DBIO.seq(Suppliers.createSchema, Beers.createSchema)
   }
 
 }

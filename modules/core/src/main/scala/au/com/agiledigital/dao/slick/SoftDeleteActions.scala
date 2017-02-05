@@ -7,9 +7,9 @@ import scala.concurrent.ExecutionContext
 /**
   * Support for soft-deleting entities rather than deleting the rows.
   */
-trait SoftDeleteActions[Entity, PendingEntity] extends EntityActions[Entity, PendingEntity] {
+trait SoftDeleteActions[Entity] extends DefaultEntityDeleteActions[Entity] with EntitySupport[Entity] {
 
-  import driver.api._
+  import profile.api._
 
   def baseRecordStatusTypedType: BaseTypedType[RecordStatus]
 
@@ -36,8 +36,7 @@ trait SoftDeleteActions[Entity, PendingEntity] extends EntityActions[Entity, Pen
   def $recordStatus(table: EntityTable): Rep[RecordStatus]
 
   // Override the delete behaviour to soft-delete via an update.
-  override def deleteById(id: Id)(implicit exc: ExecutionContext): DBIO[Int] =
-    filterById(id).map($recordStatus).update(deleted)
+  override def deleteById(id: Id)(implicit exc: ExecutionContext): DBIO[Int] = filterById(id).map($recordStatus).update(deleted)
 
   // Override the base query to only return entities that have not been soft-deleted.
   override def baseQuery: Query[EntityTable, Entity, Seq] = super.baseQuery.filter($recordStatus(_) === active)

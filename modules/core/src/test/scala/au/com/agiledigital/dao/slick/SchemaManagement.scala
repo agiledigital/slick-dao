@@ -3,7 +3,7 @@ package au.com.agiledigital.dao.slick
 trait SchemaManagement[Entity, PendingEntity] {
   self: EntityActions[Entity, PendingEntity] =>
 
-  import driver.api._
+  import profile.api._
 
   def createSchema: DBIO[Unit] = tableQuery.schema.create
 
