@@ -5,10 +5,10 @@ addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.6.0")
 addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "0.8.0")
 
 // Wart removers
-addSbtPlugin("org.brianmckenna" % "sbt-wartremover" % "0.14")
+addSbtPlugin("org.wartremover" % "sbt-wartremover" % "2.1.1")
 
-// Play wart removers
-addSbtPlugin("org.danielnixon" % "sbt-playwarts" % "0.18")
+// Extra wart removers
+addSbtPlugin("org.danielnixon" % "sbt-extrawarts" % "0.3.0")
 
 // For performing releases
 addSbtPlugin("com.github.gseitz" % "sbt-release" % "1.0.3")
