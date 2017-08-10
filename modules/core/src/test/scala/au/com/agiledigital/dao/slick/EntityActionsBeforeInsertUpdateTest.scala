@@ -57,7 +57,7 @@ class EntityActionsBeforeInsertUpdateTest
 
   class FooDao extends EntityActions[Foo, PendingFoo] with H2ProfileProvider {
 
-    import driver.api._
+    import profile.api._
 
     val baseTypedType: BaseTypedType[Id] = implicitly[BaseTypedType[Id]]
 
@@ -103,7 +103,7 @@ class EntityActionsBeforeInsertUpdateTest
     }
 
     def createSchema = {
-      import driver.api._
+      import profile.api._
       tableQuery.schema.create
     }
 

@@ -1,42 +1,42 @@
 package au.com.agiledigital.dao.slick
 
-import slick.driver.{ DerbyDriver, H2Driver, HsqldbDriver, JdbcProfile, MySQLDriver, PostgresDriver, SQLiteDriver }
+import slick.jdbc.{ DerbyProfile, H2Profile, HsqldbProfile, JdbcProfile, MySQLProfile, PostgresProfile, SQLiteProfile }
 
 trait JdbcProfileProvider {
   type JP <: JdbcProfile
-  val driver: JP
+  val profile: JP
 }
 
 object JdbcProfileProvider {
 
   trait H2ProfileProvider extends JdbcProfileProvider {
-    type JP = H2Driver
-    val driver: H2Driver = H2Driver
+    type JP = H2Profile
+    val profile: H2Profile = H2Profile
   }
 
   trait PostgresProfileProvider extends JdbcProfileProvider {
-    type JP = PostgresDriver
-    val driver = PostgresDriver
+    type JP = PostgresProfile
+    val profile = PostgresProfile
   }
 
   trait DerbyProfileProvider extends JdbcProfileProvider {
-    type JP = DerbyDriver
-    val driver = DerbyDriver
+    type JP = DerbyProfile
+    val profile = DerbyProfile
   }
 
   trait HsqlProfileProvider extends JdbcProfileProvider {
-    type JP = HsqldbDriver
-    val driver = HsqldbDriver
+    type JP = HsqldbProfile
+    val profile = HsqldbProfile
   }
 
   trait MySQLProfileProvider extends JdbcProfileProvider {
-    type JP = MySQLDriver
-    val driver = MySQLDriver
+    type JP = MySQLProfile
+    val profile = MySQLProfile
   }
 
   trait SQLLiteProfileProvider extends JdbcProfileProvider {
-    type JP = SQLiteDriver
-    val driver = SQLiteDriver
+    type JP = SQLiteProfile
+    val profile = SQLiteProfile
   }
 
 }

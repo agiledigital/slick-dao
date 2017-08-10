@@ -1,7 +1,8 @@
 package au.com.agiledigital.dao.slick
 
-import au.com.agiledigital.dao.slick.exceptions.{ NoRowsAffectedException, TooManyRowsAffectedException }
 import slick.dbio.DBIO
+
+import au.com.agiledigital.dao.slick.exceptions.{ NoRowsAffectedException, TooManyRowsAffectedException }
 
 import scala.concurrent.ExecutionContext
 

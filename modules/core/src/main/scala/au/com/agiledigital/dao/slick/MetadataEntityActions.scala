@@ -1,30 +1,36 @@
 package au.com.agiledigital.dao.slick
 
-import java.time.{ Clock, LocalDateTime }
-
 import scala.concurrent.ExecutionContext
 
-trait MetadataEntityActions[Entity, PendingEntity] extends EntityActions[Entity, PendingEntity] {
+trait MetadataEntityActions[Entity, PendingEntity, D]
+    extends DefaultEntityCreationActions[Entity, PendingEntity]
+    with DefaultEntityUpdateActions[Entity]
+    with EntitySupport[Entity] {
 
-  import driver.api._
+  import profile.api._
 
-  def clock: Clock
+  def dateCreatedLens: Lens[Entity, D]
 
-  def dateCreatedLens: Lens[Entity, LocalDateTime]
+  def lastUpdatedLens: Lens[Entity, D]
 
-  def lastUpdatedLens: Lens[Entity, LocalDateTime]
+  def now: D
 
-  override def beforeInsert(entity: Entity)(implicit exc: ExecutionContext): DBIO[Entity] = {
+  override def beforeInsert(entity: Entity)(
+    implicit
+    exc: ExecutionContext
+  ): DBIO[Entity] = {
     super.beforeInsert(entity).map { superEntity =>
-      dateCreatedLens.set(entity, LocalDateTime.now(clock))
+      dateCreatedLens.set(superEntity, now)
     }
   }
 
-  override def beforeUpdate(id: Id, entity: Entity)(implicit exc: ExecutionContext): DBIO[Entity] = {
+  override def beforeUpdate(id: Id, entity: Entity)(
+    implicit
+    exc: ExecutionContext
+  ): DBIO[Entity] = {
     super.beforeUpdate(id, entity).map { superEntity =>
-      lastUpdatedLens.set(superEntity, LocalDateTime.now(clock))
+      lastUpdatedLens.set(superEntity, now)
     }
   }
 
 }
-

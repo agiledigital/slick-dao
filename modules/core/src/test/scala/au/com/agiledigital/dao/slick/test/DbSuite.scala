@@ -2,7 +2,7 @@ package au.com.agiledigital.dao.slick.test
 
 import au.com.agiledigital.dao.slick.JdbcProfileProvider
 import org.scalatest._
-import slick.backend.DatabasePublisher
+import slick.basic.DatabasePublisher
 
 import scala.concurrent.duration.{ FiniteDuration, _ }
 import scala.concurrent.{ Await, ExecutionContext }
@@ -13,11 +13,11 @@ trait DbSuite extends BeforeAndAfterAll with Matchers with OptionValues with Try
 
   self: Suite with JdbcProfileProvider =>
 
-  import driver.api._
+  import profile.api._
 
-  def setupDb: driver.backend.DatabaseDef
+  def setupDb: profile.backend.DatabaseDef
 
-  private lazy val database: driver.backend.DatabaseDef = setupDb
+  private lazy val database: profile.backend.DatabaseDef = setupDb
 
   override protected def afterAll(): Unit = {
     database.close()

@@ -43,7 +43,7 @@ class SoftDeleteTest
     }
   }
 
-  override def createSchemaAction: Foos.driver.api.DBIO[Unit] = {
+  override def createSchemaAction: Foos.profile.api.DBIO[Unit] = {
     Foos.createSchema
   }
 
@@ -51,9 +51,9 @@ class SoftDeleteTest
 
   case class PendingFoo(name: String)
 
-  class FooDao extends EntityActions[Foo, PendingFoo] with SoftDeleteActions[Foo, PendingFoo] with H2ProfileProvider {
+  class FooDao extends EntityActions[Foo, PendingFoo] with SoftDeleteActions[Foo] with H2ProfileProvider {
 
-    import driver.api._
+    import profile.api._
 
     val baseTypedType: BaseTypedType[Id] = implicitly[BaseTypedType[Id]]
 
@@ -81,7 +81,7 @@ class SoftDeleteTest
     val idLens = lens { foo: Foo => foo.id } { (entry, id) => entry.copy(id = id) }
 
     def createSchema: DBIO[Unit] = {
-      import driver.api._
+      import profile.api._
       sqlu"""create table FOO_SOFT_DELETE_TEST(
           ID BIGSERIAL,
           NAME varchar not null,

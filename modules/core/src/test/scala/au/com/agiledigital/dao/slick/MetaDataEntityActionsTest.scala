@@ -1,7 +1,7 @@
 package au.com.agiledigital.dao.slick
 
 import java.sql.Timestamp
-import java.time.{ ZoneId, Instant, Clock, LocalDateTime }
+import java.time.{ Clock, Instant, LocalDateTime, ZoneId }
 
 import au.com.agiledigital.dao.slick.JdbcProfileProvider.H2ProfileProvider
 import au.com.agiledigital.dao.slick.Lens._
@@ -38,7 +38,7 @@ class MetaDataEntityActionsTest
     }
   }
 
-  override def createSchemaAction: Foos.driver.api.DBIO[Unit] = {
+  override def createSchemaAction: Foos.profile.api.DBIO[Unit] = {
     Foos.createSchema
   }
 
@@ -46,9 +46,9 @@ class MetaDataEntityActionsTest
 
   case class PendingFoo(name: String)
 
-  class FooDao(override val clock: Clock) extends EntityActions[Foo, PendingFoo] with MetadataEntityActions[Foo, PendingFoo] with H2ProfileProvider {
+  class FooDao(clock: Clock) extends EntityActions[Foo, PendingFoo] with MetadataEntityActions[Foo, PendingFoo, LocalDateTime] with H2ProfileProvider {
 
-    import driver.api._
+    import profile.api._
 
     val baseTypedType: BaseTypedType[Id] = implicitly[BaseTypedType[Id]]
 
@@ -83,13 +83,15 @@ class MetaDataEntityActionsTest
     val idLens = lens { foo: Foo => foo.id } { (entry, id) => entry.copy(id = id) }
 
     def createSchema: DBIO[Unit] = {
-      import driver.api._
+      import profile.api._
       sqlu"""create table FOO_SOFT_METADATA_TEST(
           ID BIGSERIAL,
           NAME varchar not null,
           LAST_UPDATED TIME not null,
           DATE_CREATED TIME not null)""".map(i => ())
     }
+
+    override def now = LocalDateTime.now(clock)
 
     override def entity(pendingEntity: PendingFoo): Foo = Foo(pendingEntity.name, -1, LocalDateTime.now(clock), LocalDateTime.now(clock))
 

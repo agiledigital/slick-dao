@@ -1,44 +1,25 @@
 package au.com.agiledigital.dao.slick
 
-import au.com.agiledigital.dao.slick.exceptions.{ RowNotFoundException, NoRowsAffectedException }
-import DBIOExtensions._
 import slick.ast.BaseTypedType
+import slick.jdbc.JdbcProfile
+
+import DBIOExtensions._
+import au.com.agiledigital.dao.slick.exceptions.{ NoRowsAffectedException, RowNotFoundException }
 
 import scala.concurrent.ExecutionContext
 import scala.language.{ existentials, higherKinds, implicitConversions }
 import scala.util.{ Failure, Success }
 
-trait EntityActions[Entity, PendingEntity] extends EntityActionsLike[Entity, PendingEntity] {
+trait EntityActions[Entity, PendingEntity]
+  extends EntitySupport[Entity]
+  with DefaultEntityUpdateActions[Entity]
+  with DefaultEntityQueryActions[Entity]
+  with DefaultEntityDeleteActions[Entity]
+  with DefaultEntityCreationActions[Entity, PendingEntity]
 
-  import driver.api._
+trait DefaultEntityCreationActions[Entity, PendingEntity] extends CreateAction[Entity, PendingEntity] with EntitySupport[Entity] {
 
-  def baseTypedType: BaseTypedType[Id]
-
-  protected implicit lazy val btt: BaseTypedType[Id] = baseTypedType
-
-  type EntityTable <: Table[Entity]
-
-  def tableQuery: TableQuery[EntityTable]
-
-  def baseQuery: Query[EntityTable, EntityTable#TableElementType, Seq] = tableQuery
-
-  def $id(table: EntityTable): Rep[Id]
-
-  def idLens: Lens[Entity, Id]
-
-  override def count: DBIO[Int] = baseQuery.size.result
-
-  override def findById(id: Id): DBIO[Entity] =
-    filterById(id).result.head
-
-  override def findOptionById(id: Id): DBIO[Option[Entity]] =
-    filterById(id).result.headOption
-
-  override def create(pendingEntity: PendingEntity)(implicit exc: ExecutionContext): DBIO[Entity] = {
-    insert(pendingEntity) flatMap { id =>
-      findById(id)
-    }
-  }
+  import profile.api._
 
   /**
     * Before insert interceptor method. This method is called just before record insertion.
@@ -74,6 +55,66 @@ trait EntityActions[Entity, PendingEntity] extends EntityActionsLike[Entity, Pen
     // default implementation does nothing
     DBIO.successful(entity)
   }
+
+  def entity(pendingEntity: PendingEntity): Entity
+
+  /**
+    * Insert a new `PendingEntity`
+    *
+    * @return DBIO[Id] for the generated `Id`
+    */
+  def insert(pendingEntity: PendingEntity)(implicit exc: ExecutionContext): DBIO[Id] = {
+
+    val action = beforeInsert(entity(pendingEntity)).flatMap { preparedModel =>
+      tableQuery.returning(tableQuery.map($id)) += preparedModel
+    }
+    // beforeInsert and '+=' must run on same tx
+    action.transactionally
+  }
+
+  def findById(id: Id): DBIO[Entity]
+
+  override def create(pendingEntity: PendingEntity)(implicit exc: ExecutionContext): DBIO[Entity] = {
+    insert(pendingEntity) flatMap { id =>
+      findById(id)
+    }
+  }
+}
+
+trait DefaultEntityQueryActions[Entity] extends EntityQueryActions[Entity] with EntitySupport[Entity] {
+
+  import profile.api._
+
+  override def count: DBIO[Int] = baseQuery.size.result
+
+  override def findById(id: Id): DBIO[Entity] = filterById(id).result.head
+
+  override def findOptionById(id: Id): DBIO[Option[Entity]] = filterById(id).result.headOption
+
+  override def fetchAll(fetchSize: Int = QueryActions.defaultFetchSize)(implicit exc: ExecutionContext): StreamingDBIO[Seq[Entity], Entity] = {
+    baseQuery
+      .result
+      .transactionally
+      .withStatementParameters(fetchSize = fetchSize)
+  }
+}
+
+trait DefaultEntityDeleteActions[Entity] extends EntityDeleteActions[Entity] with EntitySupport[Entity] {
+
+  import profile.api._
+
+  override def delete(entity: Entity)(implicit exc: ExecutionContext): DBIO[Int] = {
+    deleteById(idLens.get(entity))
+  }
+
+  override def deleteById(id: Id)(implicit exc: ExecutionContext): DBIO[Int] = {
+    filterById(id).delete.mustAffectOneSingleRow
+  }
+}
+
+trait DefaultEntityUpdateActions[Entity] extends UpdateAction[Entity] with EntitySupport[Entity] {
+
+  import profile.api._
 
   /**
     * Before update interceptor method. This method is called just before record update.
@@ -113,23 +154,6 @@ trait EntityActions[Entity, PendingEntity] extends EntityActionsLike[Entity, Pen
     DBIO.successful(entity)
   }
 
-  override def insert(pendingEntity: PendingEntity)(implicit exc: ExecutionContext): DBIO[Id] = {
-    val entityToInsert = entity(pendingEntity)
-
-    val action = beforeInsert(entityToInsert).flatMap { preparedModel =>
-      tableQuery.returning(tableQuery.map($id)) += preparedModel
-    }
-    // beforeInsert and '+=' must run on same tx
-    action.transactionally
-  }
-
-  override def fetchAll(fetchSize: Int = CrudActions.defaultFetchSize)(implicit exc: ExecutionContext): StreamingDBIO[Seq[Entity], Entity] = {
-    baseQuery
-      .result
-      .transactionally
-      .withStatementParameters(fetchSize = fetchSize)
-  }
-
   override def update(entity: Entity)(implicit exc: ExecutionContext): DBIO[Entity] = {
     val id = idLens.get(entity)
     val action =
@@ -153,15 +177,32 @@ trait EntityActions[Entity, PendingEntity] extends EntityActionsLike[Entity, Pen
     }
 
   }
+}
 
-  override def delete(entity: Entity)(implicit exc: ExecutionContext): DBIO[Int] = {
-    deleteById(idLens.get(entity))
-  }
+trait EntitySupport[Entity] {
 
-  override def deleteById(id: Id)(implicit exc: ExecutionContext): DBIO[Int] = {
-    filterById(id).delete.mustAffectOneSingleRow
-  }
+  /** The `Entity`'s Id type */
+  type Id
+
+  protected val profile: JdbcProfile
+
+  import profile.api._
+
+  def baseTypedType: BaseTypedType[Id]
+
+  protected implicit lazy val btt: BaseTypedType[Id] = baseTypedType
+
+  type EntityTable <: Table[Entity]
+
+  def tableQuery: TableQuery[EntityTable]
+
+  def baseQuery: Query[EntityTable, EntityTable#TableElementType, Seq] = tableQuery
+
+  def $id(table: EntityTable): Rep[Id]
+
+  def idLens: Lens[Entity, Id]
+
+  def filterById(id: Rep[Id]): Query[EntityTable, Entity, Seq] = baseQuery.filter($id(_) === id)
 
   def filterById(id: Id): Query[EntityTable, Entity, Seq] = baseQuery.filter($id(_) === id)
-
 }

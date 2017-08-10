@@ -65,7 +65,7 @@ class CrudTest extends FlatSpec with H2Suite with JdbcProfileProvider {
 
   class FooDao extends EntityActions[Foo, PendingFoo] with H2ProfileProvider {
 
-    import driver.api._
+    import profile.api._
 
     val baseTypedType: BaseTypedType[Id] = implicitly[BaseTypedType[Id]]
 
@@ -90,7 +90,7 @@ class CrudTest extends FlatSpec with H2Suite with JdbcProfileProvider {
     val idLens = lens { foo: Foo => foo.id } { (entry, id) => entry.copy(id = id) }
 
     def createSchema = {
-      import driver.api._
+      import profile.api._
       tableQuery.schema.create
     }
 
