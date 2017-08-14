@@ -2,7 +2,7 @@ import Dependencies._
 import BuildSettings._
 import wartremover.WartRemover.autoImport._
 
-scalaVersion in ThisBuild := "2.11.8"
+scalaVersion in ThisBuild := "2.12.3"
 
 ivyScala := ivyScala.value map {
   _.copy(overrideScalaVersion = true)
@@ -10,7 +10,7 @@ ivyScala := ivyScala.value map {
 
 organization in ThisBuild := "au.com.agiledigital"
 
-crossScalaVersions := Seq("2.10.5", "2.11.8")
+crossScalaVersions := Seq("2.10.5", "2.11.8", "2.12.3")
 
 parallelExecution in Test := false
 

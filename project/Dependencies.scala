@@ -2,7 +2,7 @@ import sbt.Keys._
 import sbt._
 
 object Dependencies {
-  val slickVersion = "3.2.0"
+  val slickVersion = "3.2.1"
   val slick = "com.typesafe.slick" %% "slick" % slickVersion
 
   val shapelessDeps = Def setting (
@@ -18,7 +18,7 @@ object Dependencies {
     )
 
 
-  val scalaTest = "org.scalatest" %% "scalatest" % "2.2.4" % "test"
+  val scalaTest = "org.scalatest" %% "scalatest" % "3.0.3" % "test"
   val h2database = "com.h2database" % "h2" % "1.4.181" % "test"
 
   val mainDeps = Seq(

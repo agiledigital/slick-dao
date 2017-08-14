@@ -1,5 +1,5 @@
 import de.johoop.jacoco4sbt.JacocoPlugin.jacoco
-import org.danielnixon.playwarts.PlayWart
+import org.danielnixon.extrawarts.ExtraWart
 import org.scalastyle.sbt.ScalastylePlugin._
 import sbt.Keys._
 import sbt._
@@ -12,7 +12,7 @@ object Analysis {
   lazy val scalaStyleSettings = Seq(
     scalastyleFailOnError := true,
     compileScalastyle := org.scalastyle.sbt.ScalastylePlugin.scalastyle.in(Compile).toTask("").value,
-    (test in Test) <<= (test in Test) dependsOn compileScalastyle
+    (test in Test) := (test in Test) dependsOn compileScalastyle
   )
 
   lazy val coverageSettings = Seq(
@@ -20,35 +20,38 @@ object Analysis {
 
   lazy val wartsSettings = Seq(
     wartremoverErrors in(Compile, compile) ++= Seq(
+      Wart.ArrayEquals,
+      Wart.Any,
+      Wart.AsInstanceOf,
+      Wart.IsInstanceOf,
+      Wart.EitherProjectionPartial,
+      Wart.Enumeration,
+      Wart.ExplicitImplicitTypes,
       Wart.FinalCaseClass,
+      Wart.JavaConversions,
+      Wart.LeakingSealed,
+      Wart.MutableDataStructures,
       Wart.Null,
+      Wart.OptionPartial,
+      Wart.Product,
+      Wart.Return,
+      Wart.Serializable,
+      Wart.StringPlusAny,
+      Wart.Throw,
+      Wart.ToString,
       Wart.TryPartial,
       Wart.Var,
-      Wart.OptionPartial,
-      Wart.ListOps,
-      Wart.EitherProjectionPartial,
-      Wart.Any2StringAdd,
-      Wart.AsInstanceOf,
-      Wart.ExplicitImplicitTypes,
-      Wart.MutableDataStructures,
-      Wart.Return,
-      Wart.AsInstanceOf,
-      Wart.IsInstanceOf)
+      Wart.While)
   )
 
-  lazy val playWartsSettings = Seq(
-    // Bonus Warts
+  lazy val extraWartsSettings = Seq(
     wartremoverWarnings in (Compile, compile) ++= Seq(
-      PlayWart.DateFormatPartial,
-      PlayWart.FutureObject,
-      PlayWart.GenMapLikePartial,
-      PlayWart.GenTraversableLikeOps,
-      PlayWart.GenTraversableOnceOps,
-      PlayWart.OptionPartial,
-      PlayWart.ScalaGlobalExecutionContext,
-      PlayWart.StringOpsPartial,
-      PlayWart.TraversableOnceOps,
-      PlayWart.UntypedEquality)
+      ExtraWart.FutureObject,
+      ExtraWart.GenMapLikePartial,
+      ExtraWart.GenTraversableOnceOps,
+      ExtraWart.ScalaGlobalExecutionContext,
+      ExtraWart.StringOpsPartial,
+      ExtraWart.TraversableOnceOps)
 
   )
 
@@ -59,6 +62,7 @@ object Analysis {
       "-unchecked", // Enable additional warnings where generated code depends on assumptions.
       "-Xfatal-warnings", // Fail the compilation if there are any warnings.
       "-Xlint", // Enable recommended additional warnings.
+      "-Xlint:-unused,_",
       "-Ywarn-adapted-args", // Warn if an argument list is modified to match the receiver.
       "-Ywarn-inaccessible", // Warn about inaccessible types in method signatures.
       "-Ywarn-nullary-override", // Warn when non-nullary overrides nullary, e.g. def foo() over def foo.
@@ -67,5 +71,5 @@ object Analysis {
   )
 
   lazy val analysisSettings = scalaStyleSettings ++ coverageSettings ++
-    wartsSettings ++ playWartsSettings ++ scalacSettings
+    wartsSettings ++ extraWartsSettings ++ scalacSettings
 }
